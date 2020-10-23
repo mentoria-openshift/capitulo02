@@ -1,0 +1,1 @@
+# Apêndice: Rodando o OpenShift 4.x com CRC

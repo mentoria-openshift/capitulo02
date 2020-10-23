@@ -1,0 +1,1 @@
+# Apêndice: Instalação do OpenShift CLI
