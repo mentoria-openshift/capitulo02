@@ -4,14 +4,13 @@ Neste capítulo, vamos entender mais sobre o Kubernetes, e, principalmente, sobr
 # Tópicos
 ## Introdução ao OpenShift
 1. [Introdução ao Kubernetes e ao OpenShift](aula01)
-2. [Console web do OpenShift](aula01)
-3. [Linha de comando OpenShift](aula01)
-4. [Recursos do OpenShift](aula01)
+2. [Consoles do OpenShift](aula02)
+3. [Recursos do OpenShift](aula03)
 
 # Apêndices
 * [Instalação do OpenShift CLI](apendices/openshift_cli.md)
 * [Rodando o OpenShift 4.x com CRC](apendices/openshift_crc.md)
-* [Rodando o OpenShift 3.1 com o Minishift](apendices/openshift_minishift.md)
+* [Rodando o OpenShift 3.x com o Minishift](apendices/openshift_minishift.md)
 
 # Capítulos
 1. [Introdução a containers, Docker e ferramentas de container](https://github.com/mentoria-openshift/capitulo01)

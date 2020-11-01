@@ -116,7 +116,7 @@ O acesso externo aos recursos do OCP é feito através de rotas, que abrem acess
 * [OpenShift 4.5 Architecture](https://docs.openshift.com/container-platform/4.5/architecture/architecture.html)
 * [OpenShift 3.11 Overview](https://docs.openshift.com/container-platform/3.11/architecture/index.html)
 * [Red Hat Simplifies Deploying and Managing OpenShift](https://containerjournal.com/topics/container-management/red-hat-simplifies-deploying-and-managing-openshift/)
-* [O que é etcs?](https://www.redhat.com/pt-br/topics/containers/what-is-etcd)
+* [O que é etcd?](https://www.redhat.com/pt-br/topics/containers/what-is-etcd)
 
 ----
 <p align="center"><a href="../aula02">Próxima aula ❯</a></p>
