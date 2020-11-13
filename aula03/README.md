@@ -292,6 +292,111 @@ spec:
         - containerPort: 80
 ```
 
+## Configuração de compilação (bc)
+A configuração de compilação (BC) é uma definição de como as aplicações serão compiladas, e é composta de por gatilhos para que uma nova compilação seja iniciada. É caracterizada por uma estratégia para compilação vinda de uma ou mais fontes de recursos, e o processo é determinado usando as fontes como entrada.
+
+Configurações de compilação são geradas automaticamente para alguns tipos de aplicação quando elas são criadas, e podem ser editadas a qualquer momento como os demais recursos do OCP.
+
+```yaml
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "ruby-sample-build" 
+spec:
+  runPolicy: "Serial" 
+  triggers: 
+    -
+      type: "GitHub"
+      github:
+        secret: "secret101"
+    - type: "Generic"
+      generic:
+        secret: "secret101"
+    -
+      type: "ImageChange"
+  source: 
+    git:
+      uri: "https://github.com/openshift/ruby-hello-world"
+  strategy: 
+    sourceStrategy:
+      from:
+        kind: "ImageStreamTag"
+        name: "ruby-20-centos7:latest"
+  output: 
+    to:
+      kind: "ImageStreamTag"
+      name: "origin-ruby-sample:latest"
+```
+
+A definição de `runPolicy` controle se compilações criadas a partir desta definição podem rodar simultaneamente, e `triggers` definem gatilhos para as compilações, isto é, em quais ocasiões elas deverão ser executadas automaticamente pelo OCP. 
+
+O campo `source` define a fonte usada para a compilação, normalmente um repositório git contendo o código da aplicação. Mas o OCP também permite que aplicações sejam compiladas a partir de arquivos binários ou até mesmo de um `Dockerfile` contendo informações de uma imagem.
+
+A tag `strategy` define a estratégia de compilação usada. É possível definir uma estratégia própria, mas as comuns são `Docker` e `Source`, para usar registros de imagens ou fluxos de imagens.
+
+Em `output` temos a definição do que será feito no término da compilação da imagem de aplicação. Neste caso, uma tag de fluxo de imagem será gerada para nossa aplicação.
+
+## Rota (route)
+Como explicado anteriormente, o OCP trabalha com serviços (svc), que são pares de IP e portas para permitir que as aplicações sejam acessadas. Mas serviços expõem endpoints somente internamente, para dentro do cluster. Para que recursos sejam acessíveis por fora, é necessária a criação de uma rota. 
+
+Rotas expõem um serviço em forma de hostname, baseado no FQDN do próprio cluster, apesar de ser possível definir um host customizado. 
+
+```yaml
+apiVersion: v1
+kind: Route
+metadata:
+  name: frontend
+spec:
+  host: www.example.com
+  path: "/test" 
+  to:
+    kind: Service
+    name: frontend
+```
+
+Aqui vemos a definição de uma rota para uma aplicação, vinculada a serviço chamado frontend.
+
+## Fluxo de imagem (is)
+Containers, imagens e fluxos de imagem são conceitos importantes ao criar e gerenciar aplicações containerizadas. Uma imagem contém uma aplicação pronta para rodar, e um container é uma instância em execução desta imagem. Um fluxo de imagem é uma forma diferente de armazenar versões de uma mesma imagem. As versões diferentes são representadas por tags diferentes com um nome em comum.
+
+Fluxos de imagem são uma abstração do OpenShift para lidar com imagens de container dentro da plataforma. Eles permitem que você se assegure que a imagem que você vai usar é realmente a imagem específica que você precisa, mesmo que que o repositório onde ela está armazenada mude.
+
+Fluxos de imagem não contêm as imagens em si, mas fornecem um lugar centralizado para visualizar imagens, de forma semelhante a um repositório. É possível definir compilações e implantações para quando imagens são adicionadas ou atualizadas. Por exemplo, uma implantação usa uma determinada imagem e uma nova versão dela foi criada. Uma nova implantação pode iniciar automaticamente uma vez que a informação do fluxo de imagem se alterou.
+
+```yaml
+apiVersion: v1
+kind: ImageStream
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: 2017-09-29T13:33:49Z
+  generation: 1
+  labels:
+    app: ruby-sample-build
+    template: application-template-stibuild
+  name: origin-ruby-sample 
+  namespace: test
+  resourceVersion: "633"
+  selflink: /oapi/v1/namespaces/test/imagestreams/origin-ruby-sample
+  uid: ee2b9405-c68c-11e5-8a99-525400f25e34
+spec: {}
+status:
+  dockerImageRepository: 172.30.56.218:5000/test/origin-ruby-sample 
+  tags:
+  - items:
+    - created: 2017-09-02T10:15:09Z
+      dockerImageReference: 172.30.56.218:5000/test/origin-ruby-sample@sha256:47463d94eb5c049b2d23b03a9530bf944f8f967a0fe79147dd6b9135bf7dd13d 
+      generation: 2
+      image: sha256:909de62d1f609a717ec433cc25ca5cf00941545c83a01fb31527771e1fab3fc5 
+    - created: 2017-09-29T13:40:11Z
+      dockerImageReference: 172.30.56.218:5000/test/origin-ruby-sample@sha256:909de62d1f609a717ec433cc25ca5cf00941545c83a01fb31527771e1fab3fc5
+      generation: 1
+      image: sha256:47463d94eb5c049b2d23b03a9530bf944f8f967a0fe79147dd6b9135bf7dd13d
+    tag: latest
+```
+
+Exemplo de definição de um fluxo de imagem, com definição de nome, metadados e imagem usada para cada tag.
+
 ## Referências
 * [Documentação do OpenShift](https://docs.openshift.com/)
 * [Documentação do Kubernetes](https://kubernetes.io/docs)
@@ -302,6 +407,7 @@ spec:
 * [Mapas de configuração](https://docs.openshift.com/container-platform/4.5/builds/builds-configmaps.html)
 * [Configurações de implantação](https://docs.openshift.com/container-platform/4.5/applications/deployments/what-deployments-are.html)
 * [Estratégias de implantação](https://docs.openshift.com/container-platform/4.5/applications/deployments/deployment-strategies.html)
+* [Configurações de compilação](https://docs.openshift.com/container-platform/4.5/builds/understanding-buildconfigs.html)
 
 ----
 <p align="center"><a href="../aula02">❮ Aula anterior</a> | <a href="/capítulo03">Próximo capítulo ❯</a></p>
