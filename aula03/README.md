@@ -137,10 +137,171 @@ spec:
   type: ClusterIP
 ```
 
+## Controle de replicação (rc)
+O Controle de Replicação certifica que um número específico de réplicas de um pod está executando em dado momento. Em outras palavras, o RC certifica que todos os pods em execução são idênticos, a quantidade de pods disponíveis bate com a definida e que eles estejam sempre disponíveis para acesso.
+
+Caso existam muitos pods, o controle de replicação mata os pods sobressalentes e mantém o número de pods em execução sempre o mesmo. Da mesma forma, caso o número de pods em execução seja menor que o número definido pelo desenvolvedor, o RC cria novos pods e os coloca em execução. É semelhante a um supervisor de processos, mas ao invés de supervisionar processos específicos em um único nó, o RC supervisiona diversos pods em diversos nós.
+
+```yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nginx
+spec:
+  replicas: 3
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+```
+
+O controle de replicação é definido para uma aplicação específica, e define o número de replicas de pod em execução, com seus próprios metadados. 
+
+## Volumes persistentes (pv) e Solicitações de volumes persistentes (pvc)
+Volumes persistentes (PV) são áreas comuns de armazenamento que são usadas para compartilhar arquivos entre containers e pods. É um dos recursos herdados do Kubernetes usados no OpenShift, e é uma forma de evitar o uso de armazenamento efêmero para que não haja perda de dados. 
+
+Volumes persistentes são definidos por uma API, e representam um espaço para armazenamento no cluster, provisionado pelo administrador do cluster ou dinamicamente pelo objeto StorageClass. São volumes que são inseridos em pods, e que tem seu próprio ciclo de vida, independente de quaisquer pods que os usem.
+
+Para que os volumes sejam usados, é necessário que haja uma solicitação de volume persistente (PVC) vinculada a ele. PVCs são específicos de projetos, e são criados e usados pelos próprios desenvolvedores como uma forma de usar um PV definido. PVs não são específicos de projetos, apesar de os PVCs serem, e, por isso, é possível criar um PVC em qualquer projeto do cluster, vinculado a qualquer PV existente no cluster. 
+
+A relação entre PV e PVC é de 1 para 1. Uma vez que um PV foi vinculado a um PVC, ele não poderá ser vinculado a outro. Isso vincula o PV existente a um único projeto.
+
+Um PVC libera uma quantidade específica de espaço de armazenamento, e tem o modo de acesso especificado. O PVC é automaticamente vinculado a um PV que bate com a descrição dele, e, caso o PV não existe, um é criado automaticamente. Exemplo de definição de PV e PVC:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: block-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Block 
+  persistentVolumeReclaimPolicy: Retain
+  fc:
+    targetWWNs: ["50060e801049cfd1"]
+    lun: 0
+    readOnly: false
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: block-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Block 
+  resources:
+    requests:
+      storage: 10Gi
+```
+
+## Mapa de configuração (cm) e segredos (secret)
+Aplicações normalmente precisam de parâmetros de configuração, que são feitos por arquivos, argumentos de comandos e variáveis de ambiente. No OCP, essas informações são mantidas fora da imagem para manter as aplicações em container portáveis. 
+
+É aí que os mapas de configuração entram. Eles mantêm a aplicação sem conhecimento da plataforma do OpenShift, e serve para manter informações guardadas num formato chave-valor para que elas sejam inseridas em recursos e aplicações do OpenShift. É possível armazenar grandes blocos de informação num mapa de configuração, como um objeto JSON completo. Mapas de configuração existem dentro de um projeto específico onde foram criados, e podem ser usados somente por recursos daquele projeto. 
+
+Semelhante aos mapas de configuração, o OpenShift fornece segredos. Funcionam da mesma forma e servem também para armazenar informações que serão inseridas em recursos e aplicações, mas especificamente para informações sensíveis como senhas, chaves e credenciais. 
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: special-config 
+  namespace: default 
+data:
+  special.how: very 
+  special.type: charm
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque 
+data:
+  username: dXNlci1uYW1l
+  password: cGFzc3dvcmQ=
+```
+
+## Configuração de implantação (dc)
+Implantações (deployment) e configurações de implantação (DC) são recursos do OpenShift que fornecem dois métodos similares para gerenciar aplicações. Esses recursos descrevem o estado desejado de um componente da aplicação, como um pod. DCs envolvem um ou mais controles de replicação, e definem a forma como a aplicação será implantada no ambiente. Por isso, também incluem sets de réplicas dos pods.
+
+Usar configurações de implantação nas suas aplicações torna tudo mais flexível, pois é possível alterar a imagem usada numa implantação de uma aplicação já existe, alterar informações específicas dos pods da aplicação como variáveis de ambientes e mapas de configuração, além de portas. Até o OCP 4.4, aplicações eram criadas com uma configuração de implantação por padrão, mas a partir da versão 4.5 do OCP, novas aplicações são criadas somente com implantações, e é necessário fornecer um flag de criação de um DC para que ele seja criado.
+
+Ao criar uma configuração de implantação, um controle de replicação é criado para representar seu pod. Caso a configuração seja alterada, um novo controle de replicação é criado com a última imagem do pod, e o processo de implantação se inicia para escalar o novo controle de replicação no lugar do antigo.
+
+```yaml
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: frontend
+spec:
+  replicas: 5
+  selector:
+    name: frontend
+  template:
+    metadata:
+      labels:
+        name: frontend
+    spec:
+      containers:
+        - name: helloworld
+          image: openshift/origin-ruby-sample
+  triggers:
+  - type: ConfigChange 
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - helloworld
+      from:
+        kind: ImageStreamTag
+        name: hello-openshift:latest
+    type: ImageChange  
+  strategy:
+    type: Rolling
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-openshift
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-openshift
+  template:
+    metadata:
+      labels:
+        app: hello-openshift
+    spec:
+      containers:
+      - name: hello-openshift
+        image: openshift/hello-openshift:latest
+        ports:
+        - containerPort: 80
+```
+
 ## Referências
 * [Documentação do OpenShift](https://docs.openshift.com/)
-* [Documentação de Pods](https://docs.openshift.com/container-platform/4.5/nodes/pods/nodes-pods-using.html)
+* [Documentação do Kubernetes](https://kubernetes.io/docs)
+* [Uso de Pods](https://docs.openshift.com/container-platform/4.5/nodes/pods/nodes-pods-using.html)
 * [Monitoramento de serviços](https://docs.openshift.com/container-platform/4.5/monitoring/monitoring-your-own-services.html)
+* [Controle de replicação](https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/)
+* [Armazenamento persistente](https://docs.openshift.com/container-platform/4.5/storage/understanding-persistent-storage.html)
+* [Mapas de configuração](https://docs.openshift.com/container-platform/4.5/builds/builds-configmaps.html)
+* [Configurações de implantação](https://docs.openshift.com/container-platform/4.5/applications/deployments/what-deployments-are.html)
+* [Estratégias de implantação](https://docs.openshift.com/container-platform/4.5/applications/deployments/deployment-strategies.html)
 
 ----
 <p align="center"><a href="../aula02">❮ Aula anterior</a> | <a href="/capítulo03">Próximo capítulo ❯</a></p>
