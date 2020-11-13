@@ -23,12 +23,12 @@ metadata:
   uid: 5cc30063-0265780783bc
   resourceVersion: '165032'
   creationTimestamp: '2019-02-13T20:31:37Z'
-  labels:                  
+  labels: 
     app: hello-openshift
   annotations:
     openshift.io/scc: anyuid
 spec:
-  restartPolicy: Always      
+  restartPolicy: Always 
   serviceAccountName: default
   imagePullSecrets:
     - name: default-dockercfg-5zrhb
@@ -36,10 +36,10 @@ spec:
   schedulerName: default-scheduler
   terminationGracePeriodSeconds: 30
   nodeName: ip-10-0-140-16.us-east-2.compute.internal
-  securityContext:     
+  securityContext: 
     seLinuxOptions:
       level: 's0:c11,c10'
-  containers:          
+  containers: 
     - resources: {}
       terminationMessagePath: /dev/termination-log
       name: hello-openshift
@@ -52,14 +52,14 @@ spec:
         - containerPort: 8080
           protocol: TCP
       imagePullPolicy: Always
-      volumeMounts:             
+      volumeMounts: 
         - name: default-token-wbqsl
           readOnly: true
           mountPath: /var/run/secrets/kubernetes.io/serviceaccount
       terminationMessagePolicy: File
-      image: registry.redhat.io/openshift4/ose-ogging-eventrouter:v4.3 
-  serviceAccount: default     
-  volumes:                    
+      image: registry.redhat.io/openshift4/ose-ogging-eventrouter:v4.3 # 6
+  serviceAccount: default 
+  volumes: 
     - name: default-token-wbqsl
       secret:
         secretName: default-token-wbqsl
@@ -105,8 +105,42 @@ status:
 
 Neste exemplo, temos a definição de um pod com um container chamado hello-openshift. Para que a aplicação seja configurada e rode corretamente, precisaremos definir a imagem base para a criação dela, variáveis de ambiente da aplicação e as portas que deverão ser expostas. Mas além desses dados cruciais, podemos definir volumes compartilhados, metadados (como anotações e tags) e segredos.
 
+São defiinidas `labels`, armazenadas em chave-valor, que servem como metadados para identificar o seu pod. 
+
+Políticas de reinício (definidas na chave `restartPolicy`) também são definidas na configuração do pod, e servem para definir como o OCP responde aos containers do pod definido quando ele morre. O container pode ser reiniciado caso tenha sido removido do pod com sucesso usando a estratégia `Always`. Pode ser reiniciado quando ocorre um problema com a estratégia `OnFailure`. Ou, caso não seja requerido que os containers do pod reiniciem em caso nenhum, pode-se usar a estratégia `Never`.
+
+Um contexto de segurança (chave `securityContext`) também é definido caso os containers do pod precisem executar com permissões especiais. Por padrão, aplicações não executam como root e sim com um usuário aleatório gerado na criação do pod, mas isso pode ser alterado usando políticas de segurança, o que permite que aplicações sejam executadas com qualquer usuário definido nela, inclusive root. 
+
+É possível definir quantos e quais containers comporão o pod criado. A chave `containers` é um array que recebe um ou mais containers para aquele pod, onde são definidas coisas como variáveis de ambiente daquele container, a imagem usada para criá-lo, portas utilizadas e volumes compartilhados.
+
+Para que volumes compartilhados possam ser usados nos pods e em seus containers, eles precisam ser definidos da declaração do pod. Uma área de armazenamento efêmera é criada para que os containers compartilhem-na.
+
+## Serviços (svc)
+Serviços servem como um load balancer interno no Kubernetes. São a ponte entre pods e clientes que conectam-se aos pods. Sets de endereços de redes e portas permitem que os pods sejam acessíveis consistentemente. Por padrão, IPs internos relaciondos ao cluster do OCP são criados para os serviços, permitindo que eles se conversem entre si. Para que o serviço seja acessado externamente, IPs externos e IPs de ingresso externos ao cluster são necessários para liberar este acesso. Um exemplo de definição de serviço:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus-example-app
+  name: prometheus-example-app
+  namespace: ns1
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+    name: web
+  selector:
+    app: prometheus-example-app
+  type: ClusterIP
+```
+
 ## Referências
 * [Documentação do OpenShift](https://docs.openshift.com/)
+* [Documentação de Pods](https://docs.openshift.com/container-platform/4.5/nodes/pods/nodes-pods-using.html)
+* [Monitoramento de serviços](https://docs.openshift.com/container-platform/4.5/monitoring/monitoring-your-own-services.html)
 
 ----
 <p align="center"><a href="../aula02">❮ Aula anterior</a> | <a href="/capítulo03">Próximo capítulo ❯</a></p>
