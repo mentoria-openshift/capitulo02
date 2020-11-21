@@ -1,4 +1,4 @@
-<p align="center"><a href="../aula02">❮ Aula anterior</a> | <a href="/capítulo03">Próximo capítulo ❯</a></p>
+<p align="center"><a href="../aula02">❮ Aula anterior</a> | <a href="https://github.com/mentoria-openshift/capitulo03">Próximo capítulo ❯</a></p>
 <br/>
 
 # Aula 3 - Recursos do OpenShift
@@ -410,4 +410,4 @@ Exemplo de definição de um fluxo de imagem, com definição de nome, metadados
 * [Configurações de compilação](https://docs.openshift.com/container-platform/4.5/builds/understanding-buildconfigs.html)
 
 ----
-<p align="center"><a href="../aula02">❮ Aula anterior</a> | <a href="/capítulo03">Próximo capítulo ❯</a></p>
+<p align="center"><a href="../aula02">❮ Aula anterior</a> | <a href="https://github.com/mentoria-openshift/capitulo03">Próximo capítulo ❯</a></p>
