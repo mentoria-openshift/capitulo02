@@ -7,10 +7,6 @@ Neste capítulo, vamos entender mais sobre o Kubernetes, e, principalmente, sobr
 2. [Consoles do OpenShift](aula02)
 3. [Recursos do OpenShift](aula03)
 
-# Apêndices
-* [Instalação do OpenShift CLI](apendices/openshift_cli.md)
-* [Rodando o OpenShift 4.x com CRC](apendices/openshift_crc.md)
-
 # Capítulos
 1. [Introdução a containers, Docker e ferramentas de container](https://github.com/mentoria-openshift/capitulo01)
 2. [Introdução ao OpenShift](https://github.com/mentoria-openshift/capitulo02)
