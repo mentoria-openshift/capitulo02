@@ -3,9 +3,9 @@ Neste capítulo, vamos entender mais sobre o Kubernetes, e, principalmente, sobr
 
 # Tópicos
 ## Introdução ao OpenShift
-1. [Introdução ao Kubernetes e ao OpenShift](aula01)
-2. [Consoles do OpenShift](aula02)
-3. [Recursos do OpenShift](aula03)
+1. Aula teórica: [Introdução ao Kubernetes e ao OpenShift](aula01)
+2. Aula teórica: [Consoles do OpenShift](aula02)
+3. Aula teórica: [Recursos do OpenShift](aula03)
 
 # Capítulos
 1. [Introdução a containers, Docker e ferramentas de container](https://github.com/mentoria-openshift/capitulo01)
